@@ -14,6 +14,13 @@ export const Colors = {
     backgroundElement: '#F0F0F3',
     backgroundSelected: '#E0E1E6',
     textSecondary: '#60646C',
+    // Mirrors the --color-* CSS variables in global.css so non-NativeWind
+    // consumers (e.g. SVG icon tinting) can stay in sync with the app theme.
+    main: '#2b4c3f',
+    subMain: '#4a7c59',
+    level1: '#f7f6f0',
+    level2: '#ededdf',
+    level3: '#e2e1cf',
   },
   dark: {
     text: '#ffffff',
@@ -21,6 +28,11 @@ export const Colors = {
     backgroundElement: '#212225',
     backgroundSelected: '#2E3135',
     textSecondary: '#B0B4BA',
+    main: '#a5d6a7',
+    subMain: '#81c784',
+    level1: '#1e1e1e',
+    level2: '#2d2d2d',
+    level3: '#3d3d3d',
   },
 } as const;
 

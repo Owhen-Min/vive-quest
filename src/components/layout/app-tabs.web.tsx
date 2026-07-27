@@ -9,38 +9,45 @@ import {
 import { SymbolView } from 'expo-symbols';
 import { Pressable, useColorScheme, View, StyleSheet } from 'react-native';
 
-import { ExternalLink } from './external-link';
-import { ThemedText } from './themed-text';
-import { ThemedView } from './themed-view';
+import { ExternalLink } from '@/components/ui/external-link';
+import { TabIcon, TAB_HREFS, TAB_LABELS, TAB_ORDER, type TabName } from './tab-icon';
+import { ThemedText } from '@/components/ui/themed-text';
+import { ThemedView } from '@/components/ui/themed-view';
+import { TopBar } from './top-bar';
 
 import { Colors, MaxContentWidth, Spacing } from '@/constants/theme';
 
 export default function AppTabs() {
   return (
     <Tabs>
-      <TabSlot style={{ height: '100%' }} />
+      <TopBar />
+      <TabSlot style={{ flex: 1 }} />
       <TabList asChild>
         <CustomTabList>
-          <TabTrigger name="home" href="/" asChild>
-            <TabButton>Home</TabButton>
-          </TabTrigger>
-          <TabTrigger name="explore" href="/explore" asChild>
-            <TabButton>Explore</TabButton>
-          </TabTrigger>
+          {TAB_ORDER.map((name) => (
+            <TabTrigger key={name} name={name} href={TAB_HREFS[name]} asChild>
+              <TabButton name={name} />
+            </TabTrigger>
+          ))}
         </CustomTabList>
       </TabList>
     </Tabs>
   );
 }
 
-export function TabButton({ children, isFocused, ...props }: TabTriggerSlotProps) {
+export function TabButton({ name, isFocused, ...props }: TabTriggerSlotProps & { name: TabName }) {
+  const scheme = useColorScheme();
+  const colors = Colors[scheme === 'unspecified' ? 'light' : scheme];
+  const tintColor = isFocused ? colors.main : colors.textSecondary;
+
   return (
     <Pressable {...props} style={({ pressed }) => pressed && styles.pressed}>
       <ThemedView
         type={isFocused ? 'backgroundSelected' : 'backgroundElement'}
-        style={styles.tabButtonView}>
+        style={[styles.tabButtonView, styles.tabButtonContent]}>
+        <TabIcon name={name} color={tintColor} size={16} />
         <ThemedText type="small" themeColor={isFocused ? 'text' : 'textSecondary'}>
-          {children}
+          {TAB_LABELS[name]}
         </ThemedText>
       </ThemedView>
     </Pressable>
@@ -104,6 +111,11 @@ const styles = StyleSheet.create({
     paddingVertical: Spacing.one,
     paddingHorizontal: Spacing.three,
     borderRadius: Spacing.three,
+  },
+  tabButtonContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.one,
   },
   externalPressable: {
     flexDirection: 'row',
