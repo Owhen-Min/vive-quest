@@ -166,7 +166,7 @@ export function MoodTrendChart({
   const lastLabel = lastDataPoint?.label ?? "최근 기록";
 
   return (
-    <View className="bg-level1 rounded-3xl p-5 border border-level3 shadow-sm mb-6">
+    <View className="bg-level1 rounded-3xl p-5 border border-level3 shadow-sm">
       {/* 1. 상단 타이틀 & 탭 조절 */}
       <View className="flex-row items-center justify-between mb-4">
         <View>

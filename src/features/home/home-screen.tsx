@@ -41,12 +41,12 @@ export default function HomeScreen() {
       <ScrollView className="px-5 py-4">
         {/* Record trigger card (Level1 Container) */}
         <View className="bg-level1 rounded-3xl p-6 border border-level3 shadow-sm flex-row items-center justify-between">
-          {/* Left: Speech Bubble + Trigger Button */}
-          <View className="flex-1 pr-2">
+          {/* Left: Speech Bubble + Trigger Button (2/3) */}
+          <View className="flex-[2] pr-2">
             {/* Speech Bubble */}
-            <View className="flex-row items-center mb-6">
-              <View className="bg-level2 w-full px-5 py-4 rounded-3xl border border-level3 items-center justify-center">
-                <Text className="text-3xl text-main text-center leading-6">
+            <View className="w-full flex-row items-center mb-6">
+              <View className="flex-1 bg-white px-3 py-2 rounded-3xl border border-level3 items-center justify-center">
+                <Text className="text-2xl text-main font-semibold text-center leading-10">
                   오늘의{"\n"}기분은 어때?
                 </Text>
               </View>
@@ -57,18 +57,20 @@ export default function HomeScreen() {
             {/* Trigger Button (Main Color) */}
             <TouchableOpacity
               onPress={() => setModalVisible(true)}
-              className="self-start bg-main py-4 px-6 rounded-2xl shadow items-center"
+              className="self-center bg-main py-4 px-4 rounded-2xl shadow items-center"
             >
               <Text className="text-white font-bold text-lg">기록하기 📝</Text>
             </TouchableOpacity>
           </View>
 
-          {/* Right: Character */}
-          <Image
-            source={require("@/assets/images/avatar/snapshot/snapshot.png")}
-            style={{ width: 180, height: 180 }}
-            contentFit="contain"
-          />
+          {/* Right: Character (1/3, width-driven — height follows the image's own 1:1 ratio) */}
+          <View className="flex-1">
+            <Image
+              source={require("@/assets/images/avatar/snapshot/snapshot.png")}
+              style={{ width: "100%", aspectRatio: 1 }}
+              contentFit="contain"
+            />
+          </View>
         </View>
 
         {/* Record Mood Modal */}
@@ -79,7 +81,7 @@ export default function HomeScreen() {
         />
 
         {/* Skia & Reanimated Interactive Wagmi Mood Line Chart */}
-        <View className="px-5 pb-5">
+        <View className="mt-5 ">
           <MoodTrendChart vibeLogs={vibeLogs} />
         </View>
       </ScrollView>
