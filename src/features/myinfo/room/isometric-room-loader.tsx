@@ -1,10 +1,7 @@
-import { lazy } from 'react';
 import { ActivityIndicator, StyleSheet, View } from 'react-native';
 
-import type { IsometricRoomProps } from './isometric-room';
+import IsometricRoom, { type IsometricRoomProps } from './isometric-room';
 import { SkiaLoader } from '@/components/skia/skia-loader';
-
-const NativeIsometricRoom = lazy(() => import('./isometric-room'));
 
 function LoadingFallback({ size = 220 }: IsometricRoomProps) {
   return (
@@ -23,7 +20,7 @@ export function IsometricRoomLoader({ size = 220 }: IsometricRoomProps) {
   return (
     <SkiaLoader
       getComponent={() => import('./isometric-room')}
-      NativeComponent={NativeIsometricRoom}
+      NativeComponent={IsometricRoom}
       componentProps={{ size }}
       fallback={<LoadingFallback size={size} />}
     />

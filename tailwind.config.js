@@ -1,6 +1,6 @@
 /** @type {import('tailwindcss').Config} */
 module.exports = {
-  content: ["./src/app/**/*.{js,jsx,ts,tsx}", "./src/components/**/*.{js,jsx,ts,tsx}"],
+  content: ["./src/**/*.{js,jsx,ts,tsx}"],
   presets: [require("nativewind/preset")],
   // NativeWind v4는 'media' 방식으로 시스템 다크모드를 감지합니다.
   // global.css의 @media (prefers-color-scheme: dark)와 연동됩니다.

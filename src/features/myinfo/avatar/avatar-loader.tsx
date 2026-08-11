@@ -1,10 +1,7 @@
-import { lazy } from "react";
 import { ActivityIndicator, StyleSheet, View } from "react-native";
 
-import type { AvatarCanvasProps } from "./avatar-canvas";
+import AvatarCanvas, { type AvatarCanvasProps } from "./avatar-canvas";
 import { SkiaLoader } from "@/components/skia/skia-loader";
-
-const NativeAvatarCanvas = lazy(() => import("./avatar-canvas"));
 
 function LoadingFallback({ size = 220 }: AvatarCanvasProps) {
   return (
@@ -23,7 +20,7 @@ export function AvatarLoader({ size = 220, ...config }: AvatarCanvasProps) {
   return (
     <SkiaLoader
       getComponent={() => import("./avatar-canvas")}
-      NativeComponent={NativeAvatarCanvas}
+      NativeComponent={AvatarCanvas}
       componentProps={{ size, ...config }}
       fallback={<LoadingFallback size={size} />}
     />

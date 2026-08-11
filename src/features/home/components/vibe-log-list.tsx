@@ -1,5 +1,5 @@
-import { Text, View } from 'react-native';
-import type { VibeLog } from '@/context/AppContext';
+import type { VibeLog } from "@/context/AppContext";
+import { Text, View } from "react-native";
 
 interface VibeLogListProps {
   vibeLogs: VibeLog[];
@@ -15,7 +15,7 @@ const getPointHeight = (score: number) => {
 
 export function VibeLogList({ vibeLogs }: VibeLogListProps) {
   return (
-    <View className="bg-level1 rounded-3xl p-4 mb-6 border border-level3 shadow-sm">
+    <View className="bg-level1 rounded-3xl mb-6 border border-level3 shadow-sm">
       <View className="flex-row items-center mb-3">
         <Text className="text-sm font-bold text-sub-main">
           📈 최근 7일 기분 추이
@@ -27,10 +27,7 @@ export function VibeLogList({ vibeLogs }: VibeLogListProps) {
         {/* Y-axis Labels (Mood score 5 to -5) */}
         <View className="justify-between pr-2 border-r border-level3/40 h-full py-1">
           {[5, 4, 3, 2, 1, 0, -1, -2, -3, -4, -5].map((val) => (
-            <Text
-              key={val}
-              className="text-[9px] text-main/60 text-right w-4"
-            >
+            <Text key={val} className="text-[9px] text-main/60 text-right w-4">
               {val}
             </Text>
           ))}
@@ -75,12 +72,8 @@ export function VibeLogList({ vibeLogs }: VibeLogListProps) {
         <Text className="text-[10px] text-orange-500 font-bold">
           😕 -2 나쁨
         </Text>
-        <Text className="text-[10px] text-yellow-600 font-bold">
-          😐 0 보통
-        </Text>
-        <Text className="text-[10px] text-green-600 font-bold">
-          🙂 2 좋음
-        </Text>
+        <Text className="text-[10px] text-yellow-600 font-bold">😐 0 보통</Text>
+        <Text className="text-[10px] text-green-600 font-bold">🙂 2 좋음</Text>
         <Text className="text-[10px] text-emerald-600 font-bold">
           😆 5 매우좋음
         </Text>
