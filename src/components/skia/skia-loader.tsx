@@ -1,4 +1,3 @@
-import { Suspense } from 'react';
 import type { ComponentType, ReactNode } from 'react';
 
 export interface SkiaLoaderProps<TProps extends object> {
@@ -9,9 +8,12 @@ export interface SkiaLoaderProps<TProps extends object> {
    */
   getComponent: () => Promise<{ default: ComponentType<TProps> }>;
   /**
-   * `lazy(getComponent)`, created once at module scope by the caller (see
-   * `isometric-room-loader.tsx` / `avatar-loader.tsx`) so we don't create a
-   * fresh lazy component on every render.
+   * Statically imported by the caller (see `isometric-room-loader.tsx` /
+   * `avatar-loader.tsx`) and rendered as-is - native has no async loading
+   * step, so this must NOT be a `lazy()`-wrapped component. Metro's async
+   * `import()` chunk for this module has proven unreliable on Android/iOS
+   * (intermittent phantom `SyntaxError`s from the async-require fetch), so
+   * native deliberately avoids `React.lazy`/`Suspense` entirely.
    */
   NativeComponent: ComponentType<TProps>;
   componentProps: TProps;
@@ -20,7 +22,8 @@ export interface SkiaLoaderProps<TProps extends object> {
 
 /**
  * Native implementation of the cross-platform Skia mount point. On iOS and
- * Android, Skia is available natively so we just lazy-mount the component.
+ * Android, Skia is available synchronously (no wasm to fetch), so this just
+ * renders the component directly - no `lazy()`/`Suspense` involved.
  *
  * IMPORTANT: this file must not import anything from
  * `@shopify/react-native-skia/lib/module/web` - that pulls the web-only
@@ -31,11 +34,6 @@ export interface SkiaLoaderProps<TProps extends object> {
 export function SkiaLoader<TProps extends object>({
   NativeComponent,
   componentProps,
-  fallback,
 }: SkiaLoaderProps<TProps>) {
-  return (
-    <Suspense fallback={fallback}>
-      <NativeComponent {...componentProps} />
-    </Suspense>
-  );
+  return <NativeComponent {...componentProps} />;
 }
