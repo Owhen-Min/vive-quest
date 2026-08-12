@@ -2,10 +2,10 @@ import type { SQLiteDatabase } from "expo-sqlite";
 
 const DATABASE_VERSION = 1;
 
-const MIGRATIONS: ReadonlyArray<{
+const MIGRATIONS: readonly {
   version: number;
   statements: string;
-}> = [
+}[] = [
   {
     version: 1,
     statements: `
