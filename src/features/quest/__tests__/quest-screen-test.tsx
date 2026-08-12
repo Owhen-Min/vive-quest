@@ -1,4 +1,8 @@
-import { fireEvent, screen } from "@testing-library/react-native";
+import {
+  fireEvent,
+  screen,
+  waitFor,
+} from "@testing-library/react-native";
 
 import { renderWithApp } from "@/test/render-with-app";
 import QuestScreen from "../quest-screen";
@@ -17,7 +21,9 @@ describe("<QuestScreen />", () => {
 
     fireEvent.press(screen.getAllByText("⬜")[0]);
 
-    expect(screen.queryByText("걷기 (581 / 1000보)")).not.toBeOnTheScreen();
-    expect(screen.getByText("퀘스트(1) / 완료(2)")).toBeOnTheScreen();
+    await waitFor(() => {
+      expect(screen.queryByText("걷기 (581 / 1000보)")).not.toBeOnTheScreen();
+      expect(screen.getByText("퀘스트(1) / 완료(2)")).toBeOnTheScreen();
+    });
   });
 });

@@ -1,4 +1,8 @@
-import { fireEvent, screen } from "@testing-library/react-native";
+import {
+  fireEvent,
+  screen,
+  waitFor,
+} from "@testing-library/react-native";
 
 import { renderWithApp } from "@/test/render-with-app";
 import HomeScreen from "../home-screen";
@@ -39,6 +43,8 @@ describe("<HomeScreen />", () => {
 
     fireEvent.press(screen.getByText("기록하기 📝"));
 
-    expect(screen.getByText("기분 기록 모달")).toBeOnTheScreen();
+    await waitFor(() => {
+      expect(screen.getByText("기분 기록 모달")).toBeOnTheScreen();
+    });
   });
 });
