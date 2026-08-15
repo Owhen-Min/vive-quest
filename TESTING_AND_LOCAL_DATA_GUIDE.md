@@ -23,7 +23,7 @@
 - Android, iOS Development Build 환경
 - Web SQLite 실행에 필요한 WASM과 COEP/COOP 설정
 
-> 아직 `AppContext`와 실제 홈 화면 저장 동작은 새 저장소에 연결되지 않았습니다. 현재 단계는 이후 기능이 사용할 저장소 기반과 검증 코드까지 구성한 상태입니다.
+> `AppContext`의 `vibeLogs`/`addVibeLog`는 이제 `moodRepository`(SQLite)와 연결되어 있습니다. 자세한 내용은 8절을 참고하세요.
 
 ## 2. 주요 디렉터리
 
@@ -249,13 +249,15 @@ Expo SQLite의 Web 지원은 SDK 57 기준 alpha입니다. Metro의 WASM 설정�
 
 ## 8. 다음 연결 작업
 
-1. `AppContext`의 초기 mock 데이터를 repository에서 불러오도록 변경
-2. `addVibeLog()`를 `moodRepository.save()`에 연결
-3. 기존 `sleepHours`를 SQLite의 `sleepMinutes`로 통일
-4. `"오늘"`, `"어제"` 문자열 대신 `localDate`를 저장하고 UI에서만 상대 날짜로 변환
+1. ~~`AppContext`의 초기 mock 데이터를 repository에서 불러오도록 변경~~ (완료: `AppProvider` 마운트 시 `moodRepository.findRecentDays(30)` 호출)
+2. ~~`addVibeLog()`를 `moodRepository.save()`에 연결~~ (완료: 날짜 기반 고정 ID `mood-YYYY-MM-DD`로 upsert)
+3. 기존 `sleepHours`를 SQLite의 `sleepMinutes`로 통일 — 저장소 경계(`AppContext`)에서는 변환이 끝났지만, `VibeLog`/화면 컴포넌트는 여전히 `sleepHours`(시간 단위)를 사용 중. 화면까지 분 단위로 통일할지는 별도 결정 필요
+4. ~~`"오늘"`, `"어제"` 문자열 대신 `localDate`를 저장하고 UI에서만 상대 날짜로 변환~~ (완료: SQLite에는 `localDate`만 저장하고, `AppContext`가 조회 시점에 `getRelativeDateLabel()`로 상대 날짜 라벨을 계산)
 5. 홈 차트의 7일/30일 선택값을 MMKV 설정과 연결
-6. 앱 시작·저장 실패 상태와 사용자 피드백 처리
+6. 앱 시작·저장 실패 상태와 사용자 피드백 처리 — 현재는 홈 화면 저장 실패 시 alert만 노출하고, 최초 로딩 실패는 콘솔 로그만 남김
 7. Development Build에서 앱 재실행 후 데이터 유지 여부 확인
+
+> Jest 환경에서는 `expo-sqlite`의 `NativeDatabase`가 동작하지 않아, `jest.setup.js`에 메모리 기반 mock을 추가해 `AppContext`를 사용하는 컴포넌트 테스트가 실제 네이티브 모듈 없이도 동작하도록 했습니다. `moodRepository`/`migrateDatabase`의 자체 단위 테스트는 각각 db와 provider를 직접 주입하므로 이 mock의 영향을 받지 않습니다.
 
 ## 9. 현재 알려진 별도 문제
 

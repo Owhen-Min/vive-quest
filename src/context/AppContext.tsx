@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import { moodRepository, toLocalDateKey, type MoodEntry } from '@/storage';
 
 // === Types ===
 
@@ -32,6 +33,7 @@ export interface Currency {
 
 export interface AppState {
   vibeLogs: VibeLog[];
+  isVibeLogsLoading: boolean;
   quests: Quest[];
   presets: Preset[];
   currency: Currency;
@@ -57,7 +59,7 @@ export interface AppState {
 }
 
 interface AppContextType extends AppState {
-  addVibeLog: (score: number, sleepHours: number, emotions: string[]) => void;
+  addVibeLog: (score: number, sleepHours: number, emotions: string[]) => Promise<void>;
   addQuest: (title: string, category: string) => void;
   toggleQuest: (id: string) => void;
   deleteQuest: (id: string) => void;
@@ -70,15 +72,8 @@ interface AppContextType extends AppState {
 
 // === Initial Data ===
 
-const initialVibeLogs: VibeLog[] = [
-  { id: '1', date: '6일 전', score: -2, sleepHours: 5.5, emotions: ['슬픔'], timestamp: '22:10' },
-  { id: '2', date: '5일 전', score: 1.5, sleepHours: 7.0, emotions: ['보통'], timestamp: '21:30' },
-  { id: '3', date: '4일 전', score: 0.2, sleepHours: 6.0, emotions: ['기쁨'], timestamp: '23:05' },
-  { id: '4', date: '3일 전', score: 2.3, sleepHours: 8.0, emotions: ['설렘'], timestamp: '20:15' },
-  { id: '5', date: '2일 전', score: 4.0, sleepHours: 8.5, emotions: ['설렘', '기쁨'], timestamp: '22:45' },
-  { id: '6', date: '어제', score: 1.5, sleepHours: 6.5, emotions: ['보통'], timestamp: '23:00' },
-  { id: '7', date: '오늘', score: -0.8, sleepHours: 5.0, emotions: ['피곤'], timestamp: '01:30' },
-];
+// vibeLogs는 더 이상 mock으로 초기화하지 않고, AppProvider 마운트 시 SQLite에서 불러온다.
+// (아래 "Vibe Log Loading" 섹션 참고)
 
 const initialQuests: Quest[] = [
   { id: 'q1', title: '걷기 (581 / 1000보)', category: '운동', completed: false },
@@ -92,12 +87,47 @@ const initialPresets: Preset[] = [
   { id: 'p3', title: '물 2L 마시기', category: '생활' },
 ];
 
+// === Vibe Log Mapping Helpers ===
+
+/** "HH:MM" 형식의 현지 시각 문자열을 만든다. */
+function formatTimeHHMM(date: Date): string {
+  return `${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`;
+}
+
+/** localDate("YYYY-MM-DD")와 오늘 날짜의 차이를 "오늘"/"어제"/"N일 전"으로 변환한다. */
+function getRelativeDateLabel(localDate: string, today: Date = new Date()): string {
+  const [year, month, day] = localDate.split('-').map(Number);
+  const target = new Date(year, (month ?? 1) - 1, day ?? 1);
+  const base = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+
+  const diffDays = Math.round((base.getTime() - target.getTime()) / 86400000);
+
+  if (diffDays === 0) return '오늘';
+  if (diffDays === 1) return '어제';
+  if (diffDays > 1) return `${diffDays}일 전`;
+  // 미래 날짜(기기 시간 변경 등 예외 상황)는 날짜를 그대로 보여준다.
+  return localDate;
+}
+
+/** SQLite의 MoodEntry를 화면에서 쓰는 VibeLog 형태로 변환한다. */
+function mapMoodEntryToVibeLog(entry: MoodEntry): VibeLog {
+  return {
+    id: entry.id,
+    date: getRelativeDateLabel(entry.localDate),
+    score: entry.score,
+    sleepHours: (entry.sleepMinutes ?? 0) / 60,
+    emotions: entry.emotions,
+    timestamp: formatTimeHHMM(new Date(entry.recordedAt)),
+  };
+}
+
 // === Context ===
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
 
 export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [vibeLogs, setVibeLogs] = useState<VibeLog[]>(initialVibeLogs);
+  const [vibeLogs, setVibeLogs] = useState<VibeLog[]>([]);
+  const [isVibeLogsLoading, setIsVibeLogsLoading] = useState(true);
   const [quests, setQuests] = useState<Quest[]>(initialQuests);
   const [presets, setPresets] = useState<Preset[]>(initialPresets);
   const [currency, setCurrency] = useState<Currency>({ gem: 381, coin: 320, starDust: 530 });
@@ -119,25 +149,55 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     furnitureSmall: 'default',
   });
 
+  // Vibe Log Loading (SQLite)
+  useEffect(() => {
+    let isMounted = true;
+
+    (async () => {
+      try {
+        const entries = await moodRepository.findRecentDays(30);
+        if (!isMounted) return;
+        setVibeLogs(entries.map(mapMoodEntryToVibeLog));
+      } catch (error) {
+        console.error('[AppContext] 감정 기록을 불러오지 못했습니다.', error);
+      } finally {
+        if (isMounted) setIsVibeLogsLoading(false);
+      }
+    })();
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
   // Vibe Actions
-  const addVibeLog = (score: number, sleepHours: number, emotions: string[]) => {
-    const today = new Date();
-    const timeStr = `${String(today.getHours()).padStart(2, '0')}:${String(today.getMinutes()).padStart(2, '0')}`;
-    
+  const addVibeLog = async (score: number, sleepHours: number, emotions: string[]) => {
+    const now = new Date();
+    const localDate = toLocalDateKey(now);
+    // 날짜 기반 고정 ID를 사용해, 같은 날 다시 기록하면 새 행을 만들지 않고 갱신되게 한다.
+    const id = `mood-${localDate}`;
+    const sleepMinutes = Math.round(sleepHours * 60);
+
+    await moodRepository.save({
+      id,
+      localDate,
+      recordedAt: now.toISOString(),
+      score,
+      sleepMinutes,
+      emotions,
+    });
+
     const newLog: VibeLog = {
-      id: Date.now().toString(),
+      id,
       date: '오늘',
       score,
       sleepHours,
       emotions,
-      timestamp: timeStr,
+      timestamp: formatTimeHHMM(now),
     };
 
     setVibeLogs((prev) => {
-      // Replace existing "오늘" if there is one, or append it
-      const filtered = prev.filter(log => log.date !== '오늘');
-      // If we replaced "오늘", we rename the old "오늘" to "어제" and cascade,
-      // but for mockup simplicity we just replace/update the log for "오늘"
+      const filtered = prev.filter((log) => log.id !== id);
       return [...filtered, newLog];
     });
 
@@ -224,6 +284,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     <AppContext.Provider
       value={{
         vibeLogs,
+        isVibeLogsLoading,
         quests,
         presets,
         currency,
