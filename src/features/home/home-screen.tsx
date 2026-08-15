@@ -9,14 +9,19 @@ export default function HomeScreen() {
   const { vibeLogs, addVibeLog } = useApp();
   const [modalVisible, setModalVisible] = useState(false);
 
-  const handleSave = (
+  const handleSave = async (
     score: number,
     sleepMinutes: number,
     emotions: string[],
   ) => {
-    addVibeLog(score, sleepMinutes / 60, emotions);
-    Alert.alert("저장 완료", "오늘의 기분이 기록되었습니다. (10 코인 획득!)");
-    setModalVisible(false);
+    try {
+      await addVibeLog(score, sleepMinutes / 60, emotions);
+      Alert.alert("저장 완료", "오늘의 기분이 기록되었습니다. (10 코인 획득!)");
+      setModalVisible(false);
+    } catch (error) {
+      console.error("[HomeScreen] 기분 기록 저장 실패", error);
+      Alert.alert("저장 실패", "기분을 저장하는 중 문제가 발생했습니다. 다시 시도해 주세요.");
+    }
   };
 
   return (
