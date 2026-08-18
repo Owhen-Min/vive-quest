@@ -20,7 +20,10 @@ export default function HomeScreen() {
       setModalVisible(false);
     } catch (error) {
       console.error("[HomeScreen] 기분 기록 저장 실패", error);
-      Alert.alert("저장 실패", "기분을 저장하는 중 문제가 발생했습니다. 다시 시도해 주세요.");
+      Alert.alert(
+        "저장 실패",
+        "기분을 저장하는 중 문제가 발생했습니다. 다시 시도해 주세요.",
+      );
     }
   };
 
@@ -32,7 +35,7 @@ export default function HomeScreen() {
       }}
     >
       {/* Top Info Bar */}
-      <View className="flex-row justify-between items-center px-5 pt-4 mb-5">
+      <View className="flex-row justify-between items-center px-5 mb-2">
         <Text className="text-2xl font-bold text-main">VIBE</Text>
         <View className="flex-row gap-2">
           <TouchableOpacity className="bg-level1 p-2 rounded-xl border border-level3">
@@ -45,7 +48,7 @@ export default function HomeScreen() {
       </View>
       <ScrollView className="px-5 py-4">
         {/* Record trigger card (Level1 Container) */}
-        <View className="bg-level1 rounded-3xl p-6 border border-level3 shadow-sm flex-row items-center justify-between">
+        <View className="overflow-visible bg-level1 rounded-3xl p-6 border border-level3 shadow-sm flex-row items-center justify-between">
           {/* Left: Speech Bubble + Trigger Button (2/3) */}
           <View className="flex-[2] pr-2">
             {/* Speech Bubble */}
@@ -56,7 +59,7 @@ export default function HomeScreen() {
                 </Text>
               </View>
               {/* Bubble tail (points right, toward character) */}
-              <View className="w-4 h-4 bg-level2 border-t border-r border-level3 rotate-45 -ml-2" />
+              <View className="w-4 h-4 bg-white border-t border-r border-level3 rotate-45 -ml-2 mt-5" />
             </View>
 
             {/* Trigger Button (Main Color) */}
@@ -68,11 +71,15 @@ export default function HomeScreen() {
             </TouchableOpacity>
           </View>
 
-          {/* Right: Character (1/3, width-driven — height follows the image's own 1:1 ratio) */}
-          <View className="flex-1">
+          {/* Right: Character (1/3 slot; visually scaled to 150% without changing flex layout) */}
+          <View className="flex-1 overflow-visible">
             <Image
               source={require("@/assets/images/avatar/snapshot/snapshot.png")}
-              style={{ width: "100%", aspectRatio: 1 }}
+              style={{
+                width: "100%",
+                aspectRatio: 1,
+                transform: [{ scale: 1.8 }],
+              }}
               contentFit="contain"
             />
           </View>
